@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uncloud</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fb;
+      color: #333;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+    button {
+      background-color: #72a4f2;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e9f1ff;
+      border-left: 4px solid #72a4f2;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <h1>Uncloud</h1>
+  <p style="text-align:center;">What’s on your mind?</p>
+  <textarea id="userInput" placeholder="Type your thoughts here..."></textarea>
+  <button onclick="processThought()">Uncloud my mind</button>
+  <div id="output" class="response" style="display:none;"></div>
+  <div class="footer">
+    Powered by GPT-3.5 · Enjoying this? <a href="https://ko-fi.com/H2H51D7OEW" target="_blank">Support on Ko-fi</a>
+  </div>
+
+  <!-- Ko-fi widget -->
+  <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+  <script type='text/javascript'>
+    kofiwidget2.init('Support me on Ko-fi', '#72a4f2', 'H2H51D7OEW');
+    kofiwidget2.draw();
+  </script>
+
+  <script>
+    const OPENAI_API_KEY = 'your-openai-api-key-here'; // Replace this with your real key
+    const MAX_FREE_USES = 10;
+
+    function processThought() {
+      const used = parseInt(localStorage.getItem('uncloud_uses') || '0');
+      if (used >= MAX_FREE_USES) {
+        alert("You’ve used Uncloud 10 times. If it’s helped, please consider supporting it on Ko-fi to keep it free and running. 🙏");
+        return;
+      }
+
+      const input = document.getElementById('userInput').value.trim();
+      if (!input) return alert("Please share what’s on your mind.");
+
+      document.getElementById('output').style.display = 'block';
+      document.getElementById('output').innerText = 'Processing…';
+
+      fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: `You are a warm and thoughtful clarity coach. You respond with insight, empathy, and gentle guidance. Your goal is to help the user feel heard and gently shift their perspective. Keep responses between 3–5 thoughtful sentences.`
+            },
+            {
+              role: "user",
+              content: input
+            }
+          ]
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const response = data.choices?.[0]?.message?.content || "Sorry, something went wrong.";
+        document.getElementById('output').innerText = response;
+        localStorage.setItem('uncloud_uses', used + 1);
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('output').innerText = "There was an error. Please try again later.";
+      });
+    }
+  </script>
+</body>
+</html>
